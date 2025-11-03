@@ -49,11 +49,11 @@ export default function Sidebar() {
                 Add Sub-category
               </a>
             </li>    
-            <li>
+            {/* <li>
               <a href="/factory" style={{ color: "white", textDecoration: "none" }}>
                 Add Brand
               </a>
-            </li>    
+            </li>     */}
               
             <li>
               <a href="/offer" style={{ color: "white", textDecoration: "none" }}>

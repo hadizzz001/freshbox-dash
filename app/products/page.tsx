@@ -234,7 +234,7 @@ for (const color of selectedColors) {
         ))}
       </select>
       
-      <label className="block text-lg font-bold mb-2">Brand</label>
+      {/* <label className="block text-lg font-bold mb-2">Brand</label>
       <select
         value={selectedFactory}
         onChange={(e) => setSelectedFactory(e.target.value)}
@@ -247,7 +247,7 @@ for (const color of selectedColors) {
             {category.name}
           </option>
         ))}
-      </select>
+      </select> */}
 
 
 
@@ -276,7 +276,7 @@ for (const color of selectedColors) {
             />
             <span>1 Item</span>
           </label>
-          <label className="flex items-center space-x-2">
+          {/* <label className="flex items-center space-x-2">
             <input
               type="radio"
               value="collection"
@@ -284,7 +284,7 @@ for (const color of selectedColors) {
               onChange={() => setProductType('collection')}
             />
             <span>Collection</span>
-          </label>
+          </label> */}
         </div>
       </div>
 

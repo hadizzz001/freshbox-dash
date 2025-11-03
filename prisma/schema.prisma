@@ -21,7 +21,6 @@ model Product {
   arrival      String   @default("no")
   cost         String?
   sub          String
-  factory      String 
 }
 
 model Category {

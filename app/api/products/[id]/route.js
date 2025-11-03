@@ -17,7 +17,7 @@ export async function PATCH(request, { params }) {
     color,
     type,
     sub,
-    factory,
+    //factory,
   } = await request.json();
 
   console.log("imgs are: ", img);
@@ -39,7 +39,7 @@ export async function PATCH(request, { params }) {
         color,
         type,
         sub,
-        factory,
+        //factory,
       },
     });
 

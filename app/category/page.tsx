@@ -46,7 +46,7 @@ const ManageCategory = () => {
       setMessage('Category added successfully!');
       setFormData({ name: '', img: [] });
       fetchCategories();
-      router.refresh();
+      window.location.reload();
     } else {
       const errorData = await res.json();
       setMessage(`Error: ${errorData.error}`);
@@ -80,7 +80,7 @@ const ManageCategory = () => {
         setEditFormData({ id: '', name: '', img: [] });
         setEditMode(false);
         fetchCategories();
-        router.refresh();
+        window.location.reload();
       } else {
         const errorData = await res.json();
         setMessage(`Error: ${errorData.error}`);
@@ -101,7 +101,7 @@ const ManageCategory = () => {
         if (res.ok) {
           setMessage('Category deleted successfully!');
           fetchCategories();
-          router.refresh();
+          window.location.reload();
         } else {
           const errorData = await res.json();
           setMessage(`Error: ${errorData.error}`);

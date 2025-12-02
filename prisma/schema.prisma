@@ -12,14 +12,17 @@ model Product {
   title        String 
   description  String?
   price        String?
+  per     String?
   discount     String?
   img          String[]
   category     String
   stock        String? 
+  stock1        String? 
   color        Json?
   type         String
   arrival      String   @default("no")
   cost         String?
+  costBox         Json? 
   sub          String
 }
 

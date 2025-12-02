@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import { useState, useEffect } from 'react';
 import dynamic from 'next/dynamic';
@@ -12,6 +12,7 @@ export default function AddProduct() {
   const [description, setDescription] = useState('');
   const [price, setPrice] = useState('');
   const [stock, setStock] = useState('');
+  const [stock1, setStock1] = useState('');
   const [img, setImg] = useState(['']);
   const [categoryOptions, setCategoryOptions] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState('');
@@ -22,15 +23,25 @@ export default function AddProduct() {
   const [productType, setProductType] = useState('single');
   const [selectedColors, setSelectedColors] = useState([]);
   const [colorQuantities, setColorQuantities] = useState({});
-  const [discount, setDiscount] = useState('');
 
+  // OLD discount removed → replaced with per
+  const [per, setPer] = useState('');
 
+  // Cost fields
+  const [cost, setCost] = useState('');
+  const [costBox, setCostBox] = useState({ price: '', kg: '' });
 
+  const availableColors = [
+    "black", "white", "red", "yellow", "blue",
+    "green", "orange", "purple", "brown", "gray", "pink"
+  ];
 
+// price after discount
+const discountValue =
+  per && price
+    ? (Number(price) - (Number(price) * (Number(per) / 100))).toFixed(2)
+    : null;
 
-
-
-  const availableColors = ["black", "white", "red", "yellow", "blue", "green", "orange", "purple", "brown", "gray", "pink"];
 
   const handleColorToggle = (color) => {
     setSelectedColors(prev =>
@@ -40,64 +51,23 @@ export default function AddProduct() {
     );
   };
 
-
-  // Fetch categories
+  // Fetch categories/subcategories/factories
   useEffect(() => {
-    async function fetchCategories() {
+    async function fetchData(endpoint, setter) {
       try {
-        const response = await fetch(`/api/category`);
+        const response = await fetch(endpoint);
         if (response.ok) {
           const data = await response.json();
-          setCategoryOptions(data);
-          setSelectedCategory('');
-        } else {
-          console.error('Failed to fetch categories');
+          setter(data);
         }
       } catch (error) {
-        console.error('Error fetching categories:', error);
+        console.error(`Error fetching ${endpoint}:`, error);
       }
     }
-    fetchCategories();
+    fetchData('/api/category', setCategoryOptions);
+    fetchData('/api/sub', setSubCategoryOptions);
+    fetchData('/api/factory', setFactoryOptions);
   }, []);
-
-  useEffect(() => {
-    async function fetchCategories() {
-      try {
-        const response = await fetch(`/api/sub`);
-        if (response.ok) {
-          const data = await response.json();
-          setSubCategoryOptions(data);
-          setSelectedsubCategory('');
-        } else {
-          console.error('Failed to fetch categories');
-        }
-      } catch (error) {
-        console.error('Error fetching categories:', error);
-      }
-    }
-    fetchCategories();
-  }, []);
-
-  useEffect(() => {
-    async function fetchCategories() {
-      try {
-        const response = await fetch(`/api/factory`);
-        if (response.ok) {
-          const data = await response.json();
-          setFactoryOptions(data);
-          setSelectedFactory('');
-        } else {
-          console.error('Failed to fetch categories');
-        }
-      } catch (error) {
-        console.error('Error fetching categories:', error);
-      }
-    }
-    fetchCategories();
-  }, []);
-
-
-
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -107,50 +77,36 @@ export default function AddProduct() {
       return;
     }
 
-    // Validate color quantities if collection
-    if (productType === 'collection') {
-      if (selectedColors.length === 0) {
-        alert('Please select at least one color with a quantity.');
-        return;
-      }
-
-for (const color of selectedColors) {
-  const qty = Number(colorQuantities[color]);
-
-  if (isNaN(qty) || qty <= 0) {
-    alert(`Please enter a valid quantity (greater than 0) for color "${color}".`);
-    return;
-  }
-}
-
+    if (productType === 'collection' && selectedColors.length === 0) {
+      alert('Please select at least one color with a quantity.');
+      return;
     }
 
+    for (const color of selectedColors) {
+      const qty = Number(colorQuantities[color]);
+      if (isNaN(qty) || qty <= 0) {
+        alert(`Please enter a valid quantity (greater than 0) for color "${color}".`);
+        return;
+      }
+    }
 
-
-    const payload = {
-      title,
-      description,
-      price: Number(price).toFixed(2),
-    discount: discount
-  ? ((Number(price) * Number(discount)) / 100).toFixed(2)
-  : null,
-
-      img,
-      category: selectedCategory, 
-      sub: selectedsubCategory, 
-      factory: selectedFactory, 
-      type: productType,
-      ...(productType === 'single' && { stock }),
-...(productType === "collection" && {
-  color: selectedColors.map((color) => ({
-    color,
-    qty: Number(colorQuantities[color]),
-  })),
-})
-
-
-    };
-
+    // FINAL PAYLOAD
+const payload = {
+  title,
+  description,
+  price: Number(price).toFixed(2),
+  per: String(per),
+  discount: discountValue,
+  img,
+  category: selectedCategory,
+  sub: selectedsubCategory,
+  factory: selectedFactory,
+  type: productType,
+  cost,
+  costBox,
+stock, 
+  ...(productType === 'box' && { stock1 }),
+};
 
 
     try {
@@ -172,25 +128,16 @@ for (const color of selectedColors) {
     }
   };
 
-
   const handleImgChange = (url) => {
     if (url) {
       setImg(url);
     }
   };
 
-
- 
-
-
- 
-
-
-
-
   return (
     <form onSubmit={handleSubmit} className="max-w-2xl mx-auto p-4">
       <h1 className="text-xl font-bold mb-4">Add New Product</h1>
+
       <input
         type="text"
         placeholder="Title"
@@ -200,10 +147,7 @@ for (const color of selectedColors) {
         required
       />
 
-
-
-
-      {/* Category Selection */}
+      {/* Category & Sub-Category */}
       <label className="block text-lg font-bold mb-2">Category</label>
       <select
         value={selectedCategory}
@@ -233,63 +177,36 @@ for (const color of selectedColors) {
           </option>
         ))}
       </select>
-      
-      {/* <label className="block text-lg font-bold mb-2">Brand</label>
-      <select
-        value={selectedFactory}
-        onChange={(e) => setSelectedFactory(e.target.value)}
-        className="w-full border p-2 mb-4"
-        required
-      >
-        <option value="" disabled>Select a Brand</option>
-        {factoryOptions.map((category) => (
-          <option key={category.id} value={category.name}>
-            {category.name}
-          </option>
-        ))}
-      </select> */}
+
+{/* Product Type */}
+<div className="mb-4">
+  <label className="block text-lg font-bold mb-2">Product Type</label>
+  <div className="flex space-x-4">
+    <label className="flex items-center space-x-2">
+      <input
+        type="radio"
+        value="single"
+        checked={productType === 'single'}
+        onChange={() => setProductType('single')}
+      />
+      <span>Single</span>
+    </label>
+
+    <label className="flex items-center space-x-2">
+      <input
+        type="radio"
+        value="box"
+        checked={productType === 'box'}
+        onChange={() => setProductType('box')}
+      />
+      <span>Box & Single</span>
+    </label>
+  </div>
+</div>
 
 
-
- 
-
-
-
-
-
-
-      
-
-
-
-
- 
-      <div className="mb-4">
-        <label className="block text-lg font-bold mb-2">Product Type</label>
-        <div className="flex space-x-4">
-          <label className="flex items-center space-x-2">
-            <input
-              type="radio"
-              value="single"
-              checked={productType === 'single'}
-              onChange={() => setProductType('single')}
-            />
-            <span>1 Item</span>
-          </label>
-          {/* <label className="flex items-center space-x-2">
-            <input
-              type="radio"
-              value="collection"
-              checked={productType === 'collection'}
-              onChange={() => setProductType('collection')}
-            />
-            <span>Collection</span>
-          </label> */}
-        </div>
-      </div>
-
-
-                    <input
+      {/* Price */}
+      <input
         type="number"
         step="0.01"
         placeholder="Price"
@@ -297,81 +214,84 @@ for (const color of selectedColors) {
         onChange={(e) => setPrice(e.target.value)}
         className="w-full border p-2 mb-4"
         required
-      /> 
+      />
 
+      {/* PERCENTAGE (per) */}
+      <input
+        type="number"
+        placeholder="Discount %"
+        value={per}
+        onChange={(e) => setPer(e.target.value)}
+        className="w-full border p-2 mb-2"
+      />
 
-
-
-        <input
-  type="number"
-  step="0.01"
-  placeholder="Discounted %"
-  value={discount}
-  onChange={(e) => setDiscount(e.target.value)}
-  className="w-full border p-2 mb-4"
-/>
-
-      {/* Stock Input (only for 1 item) */}
-      {productType === 'single' && (
-        <>
-
-
-        <input
-          type="number"
-          placeholder="Stock"
-          value={stock}
-          min={0}
-          onChange={(e) => setStock(e.target.value)}
-          className="w-full border p-2 mb-4"
-          required
-        />
-        </>
+      {/* DISCOUNT LABEL */}
+      {discountValue && (
+        <div className="mb-4 font-semibold">
+          Discount Amount: {discountValue} $
+        </div>
       )}
 
-{productType === 'collection' && (
-  <div className="mb-4">
-    <label className="block text-lg font-bold mb-2">Choose Colors</label>
-    <div className="flex flex-col gap-4">
-      {availableColors.map((color) => (
-        <div key={color} className="p-2 border rounded-md">
-          <div className="flex items-center space-x-2 mb-2">
-            <div
-              className={`w-6 h-6 rounded-full cursor-pointer border-2 ${
-                selectedColors.includes(color) ? "ring-2 ring-offset-2" : ""
-              }`}
-              style={{ backgroundColor: color }}
-              onClick={() => handleColorToggle(color)}
-            ></div>
+ 
+    <input
+      type="number"
+      placeholder="Grams Stock"
+      value={stock}
+      min={0}
+      onChange={(e) => setStock(e.target.value)}
+      className="w-full border p-2 mb-4"
+      required
+    />
+ 
+ 
 
-            <span className="capitalize font-medium">{color}</span>
+{/* Show ONLY for BOX */}
+{productType === 'box' && (
+  <>
+    {/* BOX STOCK */}
+    <input
+      type="text"
+      placeholder="Box Stock"
+      value={stock1}
+      onChange={(e) => setStock1(e.target.value)}
+      className="w-full border p-2 mb-4"
+    />
 
-            {selectedColors.includes(color) && (
-              <>
-                {/* QTY input only */}
-                <input
-                  type="number"
-                  placeholder="Qty"
-                  min={1}
-                  value={colorQuantities[color] || ""}
-                  onChange={(e) =>
-                    setColorQuantities((prev) => ({
-                      ...prev,
-                      [color]: e.target.value,
-                    }))
-                  }
-                  className="border px-2 py-1 w-24 ml-4"
-                />
-              </>
-            )}
-          </div>
-        </div>
-      ))}
+    {/* COST BOX */}
+    <div className="mb-4 border p-2 rounded">
+      <h3 className="font-medium mb-2">Cost Box</h3>
+
+      <input
+        type="text"
+        placeholder="Price"
+        value={costBox.price}
+        onChange={(e) => setCostBox(prev => ({ ...prev, price: e.target.value }))}
+        className="w-full border p-2 mb-2"
+      />
+
+      <input
+        type="text"
+        placeholder="Kg"
+        value={costBox.kg}
+        onChange={(e) => setCostBox(prev => ({ ...prev, kg: e.target.value }))}
+        className="w-full border p-2"
+      />
     </div>
-  </div>
+  </>
 )}
 
 
+      {/* Original Cost */}
+      <input
+        type="text"
+        placeholder="Original Cost"
+        value={cost}
+        onChange={(e) => setCost(e.target.value)}
+        className="w-full border p-2 mb-4"
+      />
 
+ 
+      {/* Description */}
       <label className="block text-lg font-bold mb-2">Description</label>
       <ReactQuill
         value={description}
@@ -383,10 +303,9 @@ for (const color of selectedColors) {
 
       <Upload onFilesUpload={handleImgChange} />Max 12 images
 
-
       <br />
 
-      <button type="submit" className="bg-green-500 text-white px-4 py-2">
+      <button type="submit" className="bg-green-500 text-white px-4 py-2 mt-4">
         Save Product
       </button>
     </form>

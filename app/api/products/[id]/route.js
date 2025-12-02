@@ -17,6 +17,10 @@ export async function PATCH(request, { params }) {
     color,
     type,
     sub,
+    costBox,
+    cost,
+    stock1,
+    per,
     //factory,
   } = await request.json();
 
@@ -39,7 +43,10 @@ export async function PATCH(request, { params }) {
         color,
         type,
         sub,
-        //factory,
+        costBox,
+        cost,
+        stock1,
+        per,
       },
     });
 

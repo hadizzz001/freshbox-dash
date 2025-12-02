@@ -15,9 +15,12 @@ export async function POST(req) {
       stock,
       arrival,
       color,
-      type, 
+      type,
       sub,
-      //factory, 
+      costBox,
+      cost,
+      stock1,
+      per,
     } = body;
 
     console.log("body are: ", body);
@@ -35,9 +38,12 @@ export async function POST(req) {
         stock,
         arrival,
         color,
-        type, 
+        type,
         sub,
-        //factory, 
+        costBox,
+        cost,
+        stock1,
+        per,
       },
     });
 
@@ -79,7 +85,7 @@ export async function GET(req) {
 }
 
 
- 
+
 
 
 
